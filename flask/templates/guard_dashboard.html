@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Gate Entry System</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef2f3; margin: 0; padding: 20px; }
+        .wrapper { max-width: 1100px; margin: auto; }
+        header { background: #003366; color: white; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 1fr 2fr; } }
+        .card { background: white; padding: 20px; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; color: #003366; border-bottom: 2px solid #eef2f3; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background: #28a745; color: white; }
+        .btn-out { background: #dc3545; color: white; padding: 6px 12px; font-size: 14px; width: auto; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        .status-inside { background: #fff3cd; color: #856404; }
+        .status-out { background: #d4edda; color: #155724; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h2>CAMPUS SECURITY GATEWAY</h2>
+        <p style="margin:0;">Visitor Management Terminal</p>
+    </header>
+
+    <div class="grid">
+        <!-- New Entry Form -->
+        <div class="card">
+            <h3>New Visitor Entry</h3>
+            <form action="/check-in" method="POST">
+                <div class="form-group">
+                    <label>Visitor Full Name *</label>
+                    <input type="text" name="visitor_name" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number *</label>
+                    <input type="tel" name="contact_number" placeholder="Mobile Number" required>
+                </div>
+                
+                    <div class="form-group">
+                        <label >Email </label>
+                        <input type="email" name="email" placeholder="Email id" required>
+                    </div>
+                
+                <div class="form-group">
+                    <label>Whom to Meet *</label>
+                    <input type="text" name="whom_to_meet" placeholder="Dept / Staff / Student Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Purpose of Visit</label>
+                    <select name="purpose">
+                        <option value="Official Meeting">Official Meeting</option>
+                        <option value="Admission Inquiry">Admission Inquiry</option>
+                        <option value="Parent/Guardian Visit">Parent/Guardian Visit</option>
+                        <option value="Delivery/Courier">Delivery / Courier</option>
+                        <option value="Other">Other Maintenance</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Log Entry & Clear Gate</button>
+            </form>
+        </div>
+
+       <!-- Real-time Campus Log -->
+
+<div class="card">
+
+
+<h3>Live Log Book (Today)</h3>
+
+<div class="table-responsive">
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Visitor</th>
+                <th>Email</th>
+                <th>Whom to Meet</th>
+                <th>In-Time</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for log in logs %}
+
+            <tr>
+
+                <!-- Visitor -->
+                <td>
+                    <strong>{{ log.visitor_name }}</strong>
+                    <br>
+
+                    <span style="font-size:12px; color:#666;">
+                        {{ log.contact_number }}
+                    </span>
+                </td>
+
+
+                <!-- Email -->
+                <td>
+
+                    {% if log.email %}
+
+                        <a
+                            href="mailto:{{ log.email }}"
+                            style="
+                                color:#2563eb;
+                                text-decoration:none;
+                                font-size:13px;
+                            "
+                        >
+                            {{ log.email }}
+                        </a>
+
+                    {% else %}
+
+                        <span style="color:#999;">
+                            No Email
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- Whom To Meet -->
+                <td>
+
+                    {{ log.whom_to_meet }}
+
+                    <br>
+
+                    <small style="color:#888;">
+                        {{ log.purpose }}
+                    </small>
+
+                </td>
+
+
+                <!-- Check-In Time -->
+                <td>
+
+                    {% if log.check_in_time %}
+
+                        {{ log.check_in_time.strftime('%H:%M') }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- Status -->
+                <td>
+
+                    {% if log.status == 'Inside' %}
+
+                        <span class="status-badge status-inside">
+                            Inside Campus
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-out">
+
+                            Left
+
+                            {% if log.check_out_time %}
+
+                                ({{ log.check_out_time.strftime('%H:%M') }})
+
+                            {% endif %}
+
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- Action -->
+                <td>
+
+                    {% if log.status == 'Inside' %}
+
+                        <form
+                            action="{{ url_for('check_out', log_id=log.id) }}"
+                            method="POST"
+                            style="margin:0;"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-out"
+                            >
+                                Check Out
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+
+            {% else %}
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        text-align:center;
+                        color:#999;
+                        padding:20px;
+                    "
+                >
+                    No visitor activity registered today.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+</div>
+
+
+</body>
+</html>
